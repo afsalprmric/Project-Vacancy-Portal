@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
+import { User, onAuthStateChanged, signOut as firebaseSignOut, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
@@ -30,45 +30,59 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const router = useRouter();
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
-            setUser(user);
-            if (user) {
-                try {
-                    // Check if admin (UID based)
-                    const adminDoc = await getDoc(doc(db, 'admins', user.uid));
+        let unsubscribe: () => void;
 
-                    // Check if admin (Email based)
-                    let emailAdmin = false;
-                    if (user.email) {
-                        const adminEmailDoc = await getDoc(doc(db, 'admin_emails', user.email));
-                        if (adminEmailDoc.exists()) {
-                            emailAdmin = true;
+        const initializeAuth = async () => {
+            try {
+                await setPersistence(auth, browserLocalPersistence);
+            } catch (error) {
+                console.error("Error setting persistence:", error);
+            }
+
+            unsubscribe = onAuthStateChanged(auth, async (user) => {
+                setUser(user);
+                if (user) {
+                    try {
+                        // Check if admin (UID based)
+                        const adminDoc = await getDoc(doc(db, 'admins', user.uid));
+
+                        // Check if admin (Email based)
+                        let emailAdmin = false;
+                        if (user.email) {
+                            const adminEmailDoc = await getDoc(doc(db, 'admin_emails', user.email));
+                            if (adminEmailDoc.exists()) {
+                                emailAdmin = true;
+                            }
                         }
-                    }
 
-                    if (adminDoc.exists() || emailAdmin) {
-                        setRole('admin');
-                        setIsEligible(true);
-                    } else {
-                        // All other authenticated users are eligible faculty/applicants
+                        if (adminDoc.exists() || emailAdmin) {
+                            setRole('admin');
+                            setIsEligible(true);
+                        } else {
+                            // All other authenticated users are eligible faculty/applicants
+                            setRole('faculty');
+                            setIsEligible(true);
+                        }
+                    } catch (error) {
+                        console.error("Error fetching user role:", error);
+                        // Even on error, if they are authenticated, we might want to let them in as basic user? 
+                        // For safety, let's default to basic user access if auth worked
                         setRole('faculty');
                         setIsEligible(true);
                     }
-                } catch (error) {
-                    console.error("Error fetching user role:", error);
-                    // Even on error, if they are authenticated, we might want to let them in as basic user? 
-                    // For safety, let's default to basic user access if auth worked
-                    setRole('faculty');
-                    setIsEligible(true);
+                } else {
+                    setRole(null);
+                    setIsEligible(false);
                 }
-            } else {
-                setRole(null);
-                setIsEligible(false);
-            }
-            setLoading(false);
-        });
+                setLoading(false);
+            });
+        };
 
-        return () => unsubscribe();
+        initializeAuth();
+
+        return () => {
+            if (unsubscribe) unsubscribe();
+        };
     }, []);
 
     const signOut = async () => {
