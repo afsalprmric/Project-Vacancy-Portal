@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -18,44 +18,37 @@ export default function LoginPage() {
     };
 
     useEffect(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const hasCode = urlParams.has('code'); // Firebase uses 'code' or 'state'
-        const hasState = urlParams.has('state');
-
         addLog(`Init: User=${user ? 'Yes' : 'No'}, Loading=${loading}`);
-        addLog(`URL Check: hasCode=${hasCode}, hasState=${hasState}`);
         addLog(`Current Auth User: ${auth.currentUser?.email ?? 'null'}`);
 
         if (user) {
             addLog("User detected, Redirecting to /dashboard");
             router.push('/dashboard');
-        } else {
-            if (!loading) {
-                addLog("User not found, checking redirect result...");
-                getRedirectResult(auth)
-                    .then((result) => {
-                        if (result) {
-                            addLog(`Redirect Success: ${result.user?.email}`);
-                        } else {
-                            addLog("Redirect Result: null");
-                        }
-                    })
-                    .catch((error) => {
-                        addLog(`Redirect Error: ${error.message}`);
-                        setError(`Login failed: ${error.message}`);
-                    });
-            }
         }
     }, [user, loading, router]);
 
     const handleGoogleLogin = async () => {
         try {
-            addLog("Starting Google Redirect Login...");
+            addLog("Starting Google Popup Login...");
             const provider = new GoogleAuthProvider();
-            await signInWithRedirect(auth, provider);
+            // Force account selection to avoid auto-close issues
+            provider.setCustomParameters({
+                prompt: 'select_account'
+            });
+
+            const result = await signInWithPopup(auth, provider);
+            addLog(`Popup Success: ${result.user.email}`);
+            // AuthContext will detect the user and redirect via useEffect
         } catch (err: any) {
-            addLog(`Login Invoke Error: ${err.message}`);
-            setError(err.message);
+            addLog(`Login Invoke Error: ${err.message} (${err.code})`);
+            console.error(err);
+            if (err.code === 'auth/popup-blocked') {
+                setError("Popup was blocked. Please allow popups for this site.");
+            } else if (err.code === 'auth/popup-closed-by-user') {
+                setError("Login cancelled. Please try again.");
+            } else {
+                setError(err.message);
+            }
         }
     };
 

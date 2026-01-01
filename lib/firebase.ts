@@ -11,13 +11,6 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Use same-origin for auth if in browser (Fixes mobile ITP issues)
-if (typeof window !== 'undefined') {
-  // Determine the current domain (e.g., localhost:3000 or my-app.vercel.app)
-  // and use it as the authDomain. The next.config.ts rewrite handles the traffic.
-  firebaseConfig.authDomain = window.location.host;
-}
-
 // Initialize Firebase
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
