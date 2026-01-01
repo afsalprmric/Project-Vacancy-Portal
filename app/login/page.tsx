@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { GoogleAuthProvider, signInWithRedirect } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -9,11 +9,25 @@ import { useAuth } from '@/context/AuthContext';
 export default function LoginPage() {
     const [error, setError] = useState('');
     const router = useRouter();
-    const { user } = useAuth(); // Get user from context
+    const { user } = useAuth();
 
     useEffect(() => {
         if (user) {
             router.push('/dashboard');
+        } else {
+            // Check for redirect result if user is not found yet (and loading is done)
+            // This aids debugging authentication failures on mobile
+            getRedirectResult(auth)
+                .then((result) => {
+                    if (result) {
+                        console.log("Redirect sign-in successful", result.user);
+                        // User should be set by onAuthStateChanged, but we can log success here
+                    }
+                })
+                .catch((error) => {
+                    console.error("Redirect sign-in error", error);
+                    setError(`Login failed: ${error.message}`);
+                });
         }
     }, [user, router]);
 
