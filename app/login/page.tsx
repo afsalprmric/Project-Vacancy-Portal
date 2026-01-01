@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithRedirect } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 
@@ -12,26 +12,11 @@ export default function LoginPage() {
     const handleGoogleLogin = async () => {
         try {
             const provider = new GoogleAuthProvider();
-            await signInWithPopup(auth, provider);
-            // Redirect logic will be handled by the onAuthStateChanged or the ProtectedLayout if we push to a protected route.
-            // Ideally, we fetch the role here and then redirect.
-            // But since AuthContext does it async, we might just push to /dashboard and let ProtectedLayout handle the specific rerouting 
-            // OR we can do a quick check here.
-            // For simplicity, let's push to /dashboard and let ProtectedLayout / or a central redirector handle it.
-            // However, the requirement says "After login, route..."
-            // Let's push to a special route or just / and let middleware/layout handle it.
-            // Wait, let's look at AuthContext changes. It fetches role.
-            // Re-reading Plan: "Admin -> /admin, Eligible -> /projects, Neither -> /not-verified"
-
-            // We'll push to /dashboard as a neutral ground, and updated ProtectedLayout/Dashboard to redirect?
-            // actually, let's just push to /admin for now, and let layout fix it? No that's bad UX.
-
-            // Let's rely on the AuthContext and wait for role?
-            // It's hard to wait for role inside the login handler without exposing a promise from context.
-            // Simpler approach: Push to /dashboard, and inside /dashboard or Root Layout, redirect based on role.
-
-            router.push('/dashboard');
+            await signInWithRedirect(auth, provider);
+            // No need to push to dashboard manually; the redirect will reload the page 
+            // and AuthContext will detect the user.
         } catch (err: any) {
+            console.error("Login error:", err);
             setError(err.message);
         }
     };
