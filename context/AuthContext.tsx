@@ -34,9 +34,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setUser(user);
             if (user) {
                 try {
-                    // Check if admin
+                    // Check if admin (UID based)
                     const adminDoc = await getDoc(doc(db, 'admins', user.uid));
-                    if (adminDoc.exists()) {
+
+                    // Check if admin (Email based)
+                    let emailAdmin = false;
+                    if (user.email) {
+                        const adminEmailDoc = await getDoc(doc(db, 'admin_emails', user.email));
+                        if (adminEmailDoc.exists()) {
+                            emailAdmin = true;
+                        }
+                    }
+
+                    if (adminDoc.exists() || emailAdmin) {
                         setRole('admin');
                         setIsEligible(true);
                     } else {

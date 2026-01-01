@@ -150,12 +150,20 @@ export default function AdminPage() {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
                 <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-                <Link
-                    href="/admin/projects/new"
-                    className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 shadow-sm hover:bg-indigo-700"
-                >
-                    + Create New Project
-                </Link>
+                <div>
+                    <Link
+                        href="/admin/admins"
+                        className="mt-4 sm:mt-0 mr-3 inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white shadow-sm hover:bg-gray-50"
+                    >
+                        Manage Admins
+                    </Link>
+                    <Link
+                        href="/admin/projects/new"
+                        className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 shadow-sm hover:bg-indigo-700"
+                    >
+                        + Create New Project
+                    </Link>
+                </div>
             </div>
 
             {/* Tabs */}

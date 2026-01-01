@@ -5,7 +5,8 @@ service cloud.firestore {
   
     // Helper function to check if user is admin
     function isAdmin() {
-      return exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+      return exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+             (request.auth.token.email != null && exists(/databases/$(database)/documents/admin_emails/$(request.auth.token.email)));
     }
     
     // Helper function to check if user is eligible faculty (by email)
@@ -13,8 +14,14 @@ service cloud.firestore {
        return request.auth.token.email != null && exists(/databases/$(database)/documents/eligibleFaculty/$(request.auth.token.email));
     }
 
-    // Admins Collection: Read-only for authenticated users (to check role), Write only by other admins (or manually in console)
+    // Admins Collection (UID based): Read-only for auth, Write by Admin
     match /admins/{userId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    // Admin Emails Collection (Email based): Read-only for auth, Write by Admin
+    match /admin_emails/{email} {
       allow read: if request.auth != null;
       allow write: if isAdmin();
     }
