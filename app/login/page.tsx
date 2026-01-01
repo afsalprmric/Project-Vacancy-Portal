@@ -38,7 +38,22 @@ export default function LoginPage() {
 
             const result = await signInWithPopup(auth, provider);
             addLog(`Popup Success: ${result.user.email}`);
-            // AuthContext will detect the user and redirect via useEffect
+
+            // Force token refresh to ensure persistence
+            await result.user.getIdToken(true);
+            addLog("Token refreshed successfully");
+
+            // Wait a moment for AuthContext to update
+            setTimeout(() => {
+                addLog("Checking auth state...");
+                if (auth.currentUser) {
+                    addLog(`Auth confirmed: ${auth.currentUser.email}`);
+                    router.push('/dashboard');
+                } else {
+                    addLog("WARNING: Auth state not persisted!");
+                    setError("Session failed to persist. Please try again or contact support.");
+                }
+            }, 1000);
         } catch (err: any) {
             addLog(`Login Invoke Error: ${err.message} (${err.code})`);
             console.error(err);
