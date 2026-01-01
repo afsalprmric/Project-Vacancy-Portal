@@ -16,7 +16,12 @@ export default function Navbar() {
                 <div className="flex justify-between h-16">
                     <div className="flex">
                         <div className="flex-shrink-0 flex items-center">
-                            <Link href="/dashboard" className="text-xl font-bold text-indigo-600">
+                            <Link href="/dashboard" className="flex items-center text-xl font-bold text-indigo-600">
+                                <img
+                                    src="/logo.jpg"
+                                    alt="Logo"
+                                    className="h-10 w-auto mr-3"
+                                />
                                 Project Vacancy Portal
                             </Link>
                         </div>

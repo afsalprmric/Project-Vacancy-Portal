@@ -9,6 +9,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Project Vacancy Portal",
   description: "Connect mentors and mentees",
+  icons: {
+    icon: '/logo.jpg',
+  },
 };
 
 export default function RootLayout({
