@@ -7,7 +7,7 @@ import Navbar from "@/components/Navbar";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Mentoring Platform",
+  title: "Project Vacancy Portal",
   description: "Connect mentors and mentees",
 };
 
