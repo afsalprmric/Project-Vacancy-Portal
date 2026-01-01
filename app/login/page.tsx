@@ -18,7 +18,13 @@ export default function LoginPage() {
     };
 
     useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const hasCode = urlParams.has('code'); // Firebase uses 'code' or 'state'
+        const hasState = urlParams.has('state');
+
         addLog(`Init: User=${user ? 'Yes' : 'No'}, Loading=${loading}`);
+        addLog(`URL Check: hasCode=${hasCode}, hasState=${hasState}`);
+        addLog(`Current Auth User: ${auth.currentUser?.email ?? 'null'}`);
 
         if (user) {
             addLog("User detected, Redirecting to /dashboard");
