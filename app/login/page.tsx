@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -21,6 +21,24 @@ export default function LoginPage() {
         addLog(`Init: User=${user ? 'Yes' : 'No'}, Loading=${loading}`);
         addLog(`Current Auth User: ${auth.currentUser?.email ?? 'null'}`);
 
+        // Check for redirect result when page loads
+        if (!loading && !user) {
+            addLog("Checking for redirect result...");
+            getRedirectResult(auth)
+                .then((result) => {
+                    if (result) {
+                        addLog(`Redirect Success: ${result.user.email}`);
+                        // User will be set by AuthContext, which will trigger redirect to dashboard
+                    } else {
+                        addLog("No redirect result found");
+                    }
+                })
+                .catch((error) => {
+                    addLog(`Redirect Error: ${error.message} (${error.code})`);
+                    setError(`Login failed: ${error.message}`);
+                });
+        }
+
         if (user) {
             addLog("User detected, Redirecting to /dashboard");
             router.push('/dashboard');
@@ -29,41 +47,16 @@ export default function LoginPage() {
 
     const handleGoogleLogin = async () => {
         try {
-            addLog("Starting Google Popup Login...");
+            addLog("Starting Google Redirect Login...");
             const provider = new GoogleAuthProvider();
-            // Force account selection to avoid auto-close issues
-            provider.setCustomParameters({
-                prompt: 'select_account'
-            });
 
-            const result = await signInWithPopup(auth, provider);
-            addLog(`Popup Success: ${result.user.email}`);
-
-            // Force token refresh to ensure persistence
-            await result.user.getIdToken(true);
-            addLog("Token refreshed successfully");
-
-            // Wait a moment for AuthContext to update
-            setTimeout(() => {
-                addLog("Checking auth state...");
-                if (auth.currentUser) {
-                    addLog(`Auth confirmed: ${auth.currentUser.email}`);
-                    router.push('/dashboard');
-                } else {
-                    addLog("WARNING: Auth state not persisted!");
-                    setError("Session failed to persist. Please try again or contact support.");
-                }
-            }, 1000);
+            // Initiate redirect - user will be sent to Google's login page
+            await signInWithRedirect(auth, provider);
+            // Note: Code after this line won't execute because the page redirects
         } catch (err: any) {
             addLog(`Login Invoke Error: ${err.message} (${err.code})`);
             console.error(err);
-            if (err.code === 'auth/popup-blocked') {
-                setError("Popup was blocked. Please allow popups for this site.");
-            } else if (err.code === 'auth/popup-closed-by-user') {
-                setError("Login cancelled. Please try again.");
-            } else {
-                setError(err.message);
-            }
+            setError(`Login failed: ${err.message}`);
         }
     };
 
