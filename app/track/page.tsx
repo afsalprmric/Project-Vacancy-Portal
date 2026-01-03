@@ -26,7 +26,7 @@ export default function TrackPage() {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const q = query(collection(db, 'projects'), where('status', '==', 'Open'));
+                const q = query(collection(db, 'projects'));
                 const snapshot = await getCountFromServer(q);
                 setActiveProjectsCount(snapshot.data().count);
             } catch (error) {

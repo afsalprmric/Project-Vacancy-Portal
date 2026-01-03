@@ -18,7 +18,7 @@ export default function Navbar() {
                 <div className="flex justify-between h-16">
                     <div className="flex">
                         <div className="flex-shrink-0 flex items-center">
-                            <Link href="/dashboard" className="flex items-center text-xl font-bold text-indigo-600">
+                            <Link href="/track" className="flex items-center text-xl font-bold text-indigo-600">
                                 <img
                                     src="/logo.jpg"
                                     alt="Logo"
@@ -29,14 +29,8 @@ export default function Navbar() {
                             </Link>
                         </div>
                         <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                            <Link href="/dashboard" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                                Dashboard
-                            </Link>
-                            <Link href="/projects" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                                Projects
-                            </Link>
                             <Link href="/track" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                                Track Status
+                                Dashboard
                             </Link>
                             {role === 'admin' && (
                                 <Link href="/admin" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
@@ -94,14 +88,8 @@ export default function Navbar() {
             {isMobileMenuOpen && (
                 <div className="sm:hidden" id="mobile-menu">
                     <div className="pt-2 pb-3 space-y-1">
-                        <Link href="/dashboard" className="bg-indigo-50 border-indigo-500 text-indigo-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                        <Link href="/track" className="bg-indigo-50 border-indigo-500 text-indigo-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
                             Dashboard
-                        </Link>
-                        <Link href="/projects" className="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
-                            Projects
-                        </Link>
-                        <Link href="/track" className="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
-                            Track Status
                         </Link>
                         {role === 'admin' && (
                             <Link href="/admin" className="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
