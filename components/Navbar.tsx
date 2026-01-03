@@ -44,13 +44,24 @@ export default function Navbar() {
                     </div>
                     <div className="flex items-center">
                         <div className="hidden sm:flex sm:items-center">
-                            <span className="mr-4 text-sm text-gray-700">{user.email}</span>
-                            <button
-                                onClick={() => signOut()}
-                                className="relative inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                            >
-                                Logout
-                            </button>
+                            {role === 'admin' ? (
+                                <>
+                                    <span className="mr-4 text-sm text-gray-700 font-bold">Admin</span>
+                                    <button
+                                        onClick={() => signOut()}
+                                        className="relative inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                    >
+                                        Logout
+                                    </button>
+                                </>
+                            ) : (
+                                <Link
+                                    href="/login"
+                                    className="relative inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                >
+                                    Admin Login
+                                </Link>
+                            )}
                         </div>
                         <div className="-mr-2 flex items-center sm:hidden">
                             <button

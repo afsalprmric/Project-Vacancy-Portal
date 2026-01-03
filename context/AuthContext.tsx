@@ -1,93 +1,73 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { useUser, useClerk } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 
 interface AuthContextType {
-    user: any | null;
+    user: any | null; // Keep for compatibility, but will be minimal
     loading: boolean;
-    signOut: () => Promise<void>;
+    login: (password: string) => boolean; // Simplified login
+    signOut: () => void;
     role: 'admin' | 'faculty' | 'none' | null;
     isEligible: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
     user: null,
-    loading: true,
-    signOut: async () => { },
-    role: null,
-    isEligible: false,
+    loading: false,
+    login: () => false,
+    signOut: () => { },
+    role: 'faculty', // Default to faculty (public)
+    isEligible: true, // Default to eligible
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const { user: clerkUser, isLoaded } = useUser();
-    const { signOut: clerkSignOut } = useClerk();
-    const [role, setRole] = useState<'admin' | 'faculty' | 'none' | null>(null);
-    const [isEligible, setIsEligible] = useState(false);
+    const [role, setRole] = useState<'admin' | 'faculty' | 'none' | null>('faculty');
+    const [loading, setLoading] = useState(true);
     const router = useRouter();
 
     useEffect(() => {
-        const fetchRole = async () => {
-            if (!clerkUser) {
-                setRole(null);
-                setIsEligible(false);
-                return;
-            }
-
-            try {
-                // Check if admin (using Clerk user ID)
-                const adminDoc = await getDoc(doc(db, 'admins', clerkUser.id));
-
-                // Check if admin (Email based)
-                let emailAdmin = false;
-                const primaryEmail = clerkUser.primaryEmailAddress?.emailAddress;
-                if (primaryEmail) {
-                    const adminEmailDoc = await getDoc(doc(db, 'admin_emails', primaryEmail));
-                    if (adminEmailDoc.exists()) {
-                        emailAdmin = true;
-                    }
-                }
-
-                if (adminDoc.exists() || emailAdmin) {
-                    setRole('admin');
-                    setIsEligible(true);
-                } else {
-                    // All other authenticated users are eligible faculty/applicants
-                    setRole('faculty');
-                    setIsEligible(true);
-                }
-            } catch (error) {
-                console.error("Error fetching user role:", error);
-                // Default to faculty on error
-                setRole('faculty');
-                setIsEligible(true);
-            }
-        };
-
-        if (isLoaded) {
-            fetchRole();
+        // Check for persistent admin session
+        const isAdmin = localStorage.getItem('isAdmin') === 'true';
+        if (isAdmin) {
+            setRole('admin');
+        } else {
+            setRole('faculty');
         }
-    }, [clerkUser, isLoaded]);
+        setLoading(false);
+    }, []);
 
-    const signOut = async () => {
-        await clerkSignOut();
-        setRole(null);
-        setIsEligible(false);
-        router.push('/login');
+    const login = (password: string) => {
+        if (password === 'darulhudavacancy') {
+            localStorage.setItem('isAdmin', 'true');
+            setRole('admin');
+            router.push('/dashboard'); // or /admin
+            return true;
+        }
+        return false;
     };
+
+    const signOut = () => {
+        localStorage.removeItem('isAdmin');
+        setRole('faculty');
+        router.push('/');
+    };
+
+    // Mock user object for compatibility with existing components
+    const user = role === 'admin'
+        ? { email: 'admin@dhiu.in', displayName: 'Administrator' }
+        : { email: 'guest@dhiu.in', displayName: 'Guest Faculty' };
 
     return (
         <AuthContext.Provider value={{
-            user: clerkUser,
-            loading: !isLoaded,
+            user,
+            loading,
+            login,
             signOut,
             role,
-            isEligible
+            isEligible: true
         }}>
-            {isLoaded && children}
+            {children}
         </AuthContext.Provider>
     );
 };
